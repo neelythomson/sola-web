@@ -32,7 +32,8 @@ const SCORE_MAP: Record<keyof CheckinAnswers, Record<string, number>> = {
 
 function score(entry: CheckinEntry, dim: keyof CheckinAnswers): number {
   const answer = entry.answers[dim];
-  return (answer && SCORE_MAP[dim]?.[answer]) ?? 0;
+  if (!answer) return 0;
+  return SCORE_MAP[dim]?.[answer] ?? 0;
 }
 
 export function detectPattern(checkins: CheckinEntry[]): Pattern | null {

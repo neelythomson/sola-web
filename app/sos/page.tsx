@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   SOS_STATES,
@@ -23,7 +23,17 @@ import TabBar from '@/components/TabBar';
 
 type Phase = 'select' | 'out-of-app' | 'stabilizing' | 'aftermath' | 'branching';
 
+// Next.js 14 requires useSearchParams() to be wrapped in Suspense at page boundaries
+// so the rest of the page can prerender. Default export wraps the inner component.
 export default function SosPage() {
+  return (
+    <Suspense fallback={null}>
+      <SosPageInner />
+    </Suspense>
+  );
+}
+
+function SosPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [phase, setPhase] = useState<Phase>('select');

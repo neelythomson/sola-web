@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   SOS_STATES,
   SOS_BRANCH_OPTIONS,
@@ -25,6 +25,7 @@ type Phase = 'select' | 'out-of-app' | 'stabilizing' | 'aftermath' | 'branching'
 
 export default function SosPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [phase, setPhase] = useState<Phase>('select');
   const [stateId, setStateId] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
@@ -33,6 +34,25 @@ export default function SosPage() {
   useEffect(() => {
     setYourPersonState(getYourPerson());
   }, []);
+
+  // Deep link: ?state=<id> auto-selects an SOS state on mount.
+  // Used by the post-check-in offer screen to route directly into the right
+  // stabilization flow (e.g. "loud emotional" → emotional-flooding).
+  useEffect(() => {
+    const requested = searchParams?.get('state');
+    if (!requested || stateId) return;
+    const target = SOS_STATES.find((s) => s.id === requested);
+    if (!target) return;
+    setStateId(target.id);
+    setStepIndex(0);
+    if (target.routing === 'out-of-app-immediate') {
+      setPhase('out-of-app');
+    } else {
+      startSosSession(target.id);
+      setPhase('stabilizing');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const state: SosState | undefined = SOS_STATES.find((s) => s.id === stateId);
 

@@ -8,13 +8,17 @@ import {
   dismissMorningAfter,
   completeSosSession,
   SosInProgress,
+  get,
+  STORAGE_KEYS,
 } from '@/lib/storage';
+import { detectPattern, Pattern, CheckinEntry } from '@/lib/check-in-patterns';
 import TabBar from '@/components/TabBar';
 
 export default function HomePage() {
   const [greeting, setGreeting] = useState('Good morning');
   const [abandoned, setAbandoned] = useState<SosInProgress | null>(null);
   const [morningAfter, setMorningAfter] = useState(false);
+  const [pattern, setPattern] = useState<Pattern | null>(null);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -24,6 +28,10 @@ export default function HomePage() {
 
     setAbandoned(detectAbandonedSession());
     setMorningAfter(shouldShowMorningAfter());
+
+    // Pattern detection over check-in history (returns null if < 3 entries)
+    const checkins = get<CheckinEntry[]>(STORAGE_KEYS.checkins, []);
+    setPattern(detectPattern(checkins));
   }, []);
 
   const handleStartFresh = () => {
@@ -130,8 +138,44 @@ export default function HomePage() {
           </div>
         )}
 
+        {!abandoned && pattern && (
+          <div
+            className="mt-12 p-5"
+            style={{
+              borderLeft:
+                pattern.tone === 'tender'
+                  ? '2px solid #D89090'
+                  : pattern.tone === 'gold'
+                  ? '2px solid #D7BD8E'
+                  : '2px solid #9BAEC2',
+            }}
+          >
+            <div
+              className="text-xs uppercase mb-2"
+              style={{
+                color:
+                  pattern.tone === 'tender'
+                    ? '#D89090'
+                    : pattern.tone === 'gold'
+                    ? '#D7BD8E'
+                    : '#9BAEC2',
+                letterSpacing: '2.5px',
+                fontWeight: 500,
+              }}
+            >
+              {pattern.label}
+            </div>
+            <p
+              className="italic-quote"
+              style={{ fontSize: '15px', lineHeight: 1.55, color: '#F1EDE5' }}
+            >
+              {pattern.observation}
+            </p>
+          </div>
+        )}
+
         {!abandoned && (
-          <div className="mt-16">
+          <div className="mt-12">
             <Link href="/check-in" className="row-link">
               Today&apos;s check-in
               <span className="row-sub">Five small questions</span>

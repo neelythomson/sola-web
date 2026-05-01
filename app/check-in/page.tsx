@@ -25,14 +25,14 @@ export default function CheckInPage() {
     const next = { ...answers, [dim.id]: option };
     setAnswers(next);
     if (isLast) {
-      // Save + reward + go home
+      // Save + reward + go to the done screen which interprets the answers
       const todayKey = new Date().toISOString().split('T')[0];
       set(STORAGE_KEYS.lastCheckinDate, todayKey);
       addSkyStar('checkin');
       const checkins = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.checkins) || '[]');
       checkins.push({ date: new Date().toISOString(), answers: next });
       window.localStorage.setItem(STORAGE_KEYS.checkins, JSON.stringify(checkins));
-      router.push('/home');
+      router.push('/check-in/done');
     } else {
       setStepIndex(stepIndex + 1);
     }
